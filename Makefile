@@ -35,9 +35,6 @@ down:
 ps:
 	docker compose ps
 
-redis:
-	docker exec -it benesse-mcm-api-server-redis redis-cli
-
 ifeq ($(OS_NAME), "Linux")
 shell:
 	docker compose exec app su -s /bin/bash ${shell id -un}
