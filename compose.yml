@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: .docker/local/go/Dockerfile
-    container_name: "go-app-api-server"
+    container_name: "fishing-api-server"
     stdin_open: true
     tty: true
     ports:
@@ -14,10 +14,10 @@ services:
       - "./:/app"
 
   mysql:
-    container_name: go-mysql
     build:
       context: .
       dockerfile: ".docker/local/mysql/Dockerfile"
+    container_name: "fishing-api-server-mysql"
     platform: linux/x86_64
     ports:
       - 3306:3306
