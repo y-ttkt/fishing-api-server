@@ -1,7 +1,34 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/joho/godotenv"
+	"io"
+	"log"
+	"os"
+)
+
+func init() {
+	loadEnv()
+	if os.Getenv("APP_ENV") == "production" {
+		return
+	}
+
+	f, err := os.OpenFile("application.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("failed opening file: %s", err)
+	}
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetOutput(io.MultiWriter(f, os.Stdout))
+}
 
 func main() {
 	fmt.Println("fishing-api-server")
+}
+
+func loadEnv() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 }
