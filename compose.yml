@@ -29,3 +29,12 @@ services:
     volumes:
       - ".docker/local/mysql/my.cnf:/etc/mysql/my.cnf"
       - ".mysql:/var/lib/mysql"
+
+  migrate:
+    image: migrate/migrate
+    container_name: "fishing-api-server-migrate"
+    command: ["-path", "/migrations", "-database", "mysql://fishing_api_server:password@tcp(mysql:3306)/fishing_api_server", "up"]
+    volumes:
+      - "./migrations:/migrations"
+    depends_on:
+      - mysql
