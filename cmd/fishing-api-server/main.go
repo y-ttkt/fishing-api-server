@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/yusuke-takatsu/fishing-api-server/config/database"
 	"io"
 	"log"
 	"os"
@@ -23,7 +23,12 @@ func init() {
 }
 
 func main() {
-	fmt.Println("fishing-api-server")
+	db, err := database.InitDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
 }
 
 func loadEnv() {
