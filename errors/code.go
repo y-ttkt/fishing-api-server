@@ -10,18 +10,20 @@ const (
 	Unknown ErrCode = "U000"
 
 	NotFound     ErrCode = "S001"
-	InsertFailed ErrCode = "S002"
-	Invalid      ErrCode = "S003"
-	SelectFailed ErrCode = "S004"
-	Conflict     ErrCode = "S005"
+	Invalid      ErrCode = "S002"
+	Conflict     ErrCode = "S003"
+	BadRequest   ErrCode = "S004"
+	Unauthorized ErrCode = "S005"
+	InternalErr  ErrCode = "E100"
 )
 
 var errStatusMap = map[ErrCode]int{
 	NotFound:     http.StatusNotFound,
 	Invalid:      http.StatusUnprocessableEntity,
 	Conflict:     http.StatusConflict,
-	InsertFailed: http.StatusInternalServerError,
-	SelectFailed: http.StatusInternalServerError,
+	BadRequest:   http.StatusBadRequest,
+	Unauthorized: http.StatusUnauthorized,
+	InternalErr:  http.StatusInternalServerError,
 
 	// 新しいエラーコードを追加する場合はここにエントリを追加
 }
