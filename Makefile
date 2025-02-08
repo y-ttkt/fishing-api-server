@@ -15,6 +15,10 @@ endif
 endif
 endif
 
+DB_DSN = "mysql://fishing_api_server:password@tcp(mysql:3306)/fishing_api_server"
+
+MIGRATIONS_PATH = /migrations
+
 build:
 	docker compose build
 
@@ -34,6 +38,17 @@ down:
 
 ps:
 	docker compose ps
+
+.PHONY: migrate-up migrate-down migrate-create
+migrate-up:
+	docker-compose run --rm migrate -path=$(MIGRATIONS_PATH) -database $(DB_DSN) up
+
+migrate-down:
+	docker-compose run --rm migrate -path=$(MIGRATIONS_PATH) -database $(DB_DSN) down
+
+migrate-create:
+	@echo "Usage: make migrate-create NAME=<migration_name> TYPE=<go|sql>"
+	@echo "Example: make migrate-create NAME=create_users_table TYPE=sql"
 
 ifeq ($(OS_NAME), "Linux")
 shell:
