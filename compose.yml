@@ -38,3 +38,9 @@ services:
       - "./migrations:/migrations"
     depends_on:
       - mysql
+
+  redis:
+    image: redis:6.2-buster
+    container_name: fishing-api-server-redis
+    ports:
+      - '6379:6379'
