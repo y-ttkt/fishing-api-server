@@ -50,6 +50,10 @@ migrate-create:
 	@echo "Usage: make migrate-create NAME=<migration_name> TYPE=<go|sql>"
 	@echo "Example: make migrate-create NAME=create_users_table TYPE=sql"
 
+.PHONY: redis
+redis:
+	docker exec -it fishing-api-server-redis /bin/bash -c "redis-cli"
+
 ifeq ($(OS_NAME), "Linux")
 shell:
 	docker compose exec app su -s /bin/bash ${shell id -un}
