@@ -22,7 +22,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	message string
+	Message string `json:"message"`
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&LoginResponse{
-		message: "ログインしました。",
-	})
+	if err := json.NewEncoder(w).Encode(&LoginResponse{Message: "ログインしました。"}); err != nil {
+		errors.Handler(w, err)
+	}
 }
