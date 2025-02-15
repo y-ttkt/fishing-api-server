@@ -8,6 +8,7 @@ import (
 	custumError "github.com/yusuke-takatsu/fishing-api-server/errors"
 	"github.com/yusuke-takatsu/fishing-api-server/infra/repository/user"
 	dto "github.com/yusuke-takatsu/fishing-api-server/interface/dto/input/user"
+	"log"
 )
 
 type LoginUseCase struct {
@@ -21,6 +22,7 @@ func NewLoginUseCase(repo user.Repository) *LoginUseCase {
 func (s *LoginUseCase) Execute(ctx context.Context, input dto.LoginInputData) error {
 	email, err := vo.NewEmail(input.Email)
 	if err != nil {
+		log.Printf("invalid email err: %v", err)
 		return custumError.Invalid.Wrap("無効なメールアドレスです。", err)
 	}
 
@@ -30,6 +32,7 @@ func (s *LoginUseCase) Execute(ctx context.Context, input dto.LoginInputData) er
 			return custumError.NotFound.Wrap("ユーザーが見つかりませんでした。", err)
 		}
 
+		log.Printf("find by email err: %v", err)
 		return custumError.InternalErr.Wrap("ユーザーの取得に失敗しました。", err)
 	}
 
