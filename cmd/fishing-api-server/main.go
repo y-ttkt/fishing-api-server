@@ -6,12 +6,14 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/yusuke-takatsu/fishing-api-server/config/database"
 	"github.com/yusuke-takatsu/fishing-api-server/infra/repository/user"
+	"github.com/yusuke-takatsu/fishing-api-server/infra/session"
 	"github.com/yusuke-takatsu/fishing-api-server/interface/handler"
 	loginUsecase "github.com/yusuke-takatsu/fishing-api-server/usecase/user"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func init() {
@@ -36,9 +38,12 @@ func main() {
 
 	defer db.Close()
 
+	redisClient := database.InitRedisClient()
+	manager := session.NewSessionManager(redisClient, os.Getenv("COOKIE_NAME"), 30*time.Minute)
+
 	userRepo := user.NewRepository(db)
 	login := loginUsecase.NewLoginUseCase(userRepo)
-	userHandler := handler.NewUserHandler(login)
+	userHandler := handler.NewUserHandler(login, manager)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
