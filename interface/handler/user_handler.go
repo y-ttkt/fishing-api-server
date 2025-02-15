@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/yusuke-takatsu/fishing-api-server/errors"
 	dto "github.com/yusuke-takatsu/fishing-api-server/interface/dto/input/user"
@@ -8,12 +9,20 @@ import (
 	"net/http"
 )
 
-type UserHandler struct {
-	loginUseCase *user.LoginUseCase
+type SessionManager interface {
+	RegenerateSession(ctx context.Context, w http.ResponseWriter, userID string) error
 }
 
-func NewUserHandler(loginUseCase *user.LoginUseCase) *UserHandler {
-	return &UserHandler{loginUseCase: loginUseCase}
+type UserHandler struct {
+	loginUseCase   *user.LoginUseCase
+	sessionManager SessionManager
+}
+
+func NewUserHandler(loginUseCase *user.LoginUseCase, sessionManager SessionManager) *UserHandler {
+	return &UserHandler{
+		loginUseCase:   loginUseCase,
+		sessionManager: sessionManager,
+	}
 }
 
 type LoginRequest struct {
@@ -22,7 +31,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	message string
+	Message string `json:"message"`
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -37,14 +46,20 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Password: req.Password,
 	}
 
-	if err := h.loginUseCase.Execute(r.Context(), input); err != nil {
+	id, err := h.loginUseCase.Execute(r.Context(), input)
+	if err != nil {
+		errors.Handler(w, err)
+		return
+	}
+
+	if err := h.sessionManager.RegenerateSession(r.Context(), w, id); err != nil {
 		errors.Handler(w, err)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&LoginResponse{
-		message: "ログインしました。",
-	})
+	if err := json.NewEncoder(w).Encode(&LoginResponse{Message: "ログインしました。"}); err != nil {
+		errors.Handler(w, err)
+	}
 }

@@ -3,15 +3,18 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/yusuke-takatsu/fishing-api-server/config/database"
 	"github.com/yusuke-takatsu/fishing-api-server/infra/repository/user"
+	"github.com/yusuke-takatsu/fishing-api-server/infra/session"
 	"github.com/yusuke-takatsu/fishing-api-server/interface/handler"
 	loginUsecase "github.com/yusuke-takatsu/fishing-api-server/usecase/user"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func init() {
@@ -36,11 +39,23 @@ func main() {
 
 	defer db.Close()
 
+	redisClient := database.InitRedisClient()
+	manager := session.NewSessionManager(redisClient, os.Getenv("COOKIE_NAME"), 30*time.Minute)
+
 	userRepo := user.NewRepository(db)
 	login := loginUsecase.NewLoginUseCase(userRepo)
-	userHandler := handler.NewUserHandler(login)
+	userHandler := handler.NewUserHandler(login, manager)
 
 	r := chi.NewRouter()
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With"},
+		ExposedHeaders:   []string{"Link"},
+		MaxAge:           300,
+		AllowCredentials: true,
+	}))
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
