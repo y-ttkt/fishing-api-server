@@ -25,6 +25,10 @@ func NewPassword(password string) (Password, error) {
 	return Password(hashedPassword), nil
 }
 
+func CreateFromDB(hash string) Password {
+	return Password(hash)
+}
+
 func isValidPassword(password string) bool {
 	alphanumericRegex := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 	if matched := alphanumericRegex.MatchString(password); !matched {

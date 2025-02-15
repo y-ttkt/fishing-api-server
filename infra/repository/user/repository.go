@@ -17,7 +17,7 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r *userRepository) FindByEmail(ctx context.Context, email user.Email) (*entity.User, error) {
-	query := "SELECT * FROM users WHERE email = ? LIMIT 1"
+	query := "SELECT id, email, password, status FROM users WHERE email = ? LIMIT 1"
 	row := r.db.QueryRowContext(ctx, query, email.Value())
 
 	var id string
@@ -34,10 +34,5 @@ func (r *userRepository) FindByEmail(ctx context.Context, email user.Email) (*en
 		return nil, err
 	}
 
-	passwordVo, err := user.NewPassword(password)
-	if err != nil {
-		return nil, err
-	}
-
-	return entity.CreateFromDB(id, emailVo, passwordVo, enum.Status(status)), nil
+	return entity.CreateFromDB(id, emailVo, user.CreateFromDB(password), enum.Status(status)), nil
 }
