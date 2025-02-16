@@ -6,9 +6,13 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 	"github.com/yusuke-takatsu/fishing-api-server/config/database"
+	"github.com/yusuke-takatsu/fishing-api-server/config/s3"
+	"github.com/yusuke-takatsu/fishing-api-server/infra/repository/profile"
+	s3Repository "github.com/yusuke-takatsu/fishing-api-server/infra/repository/s3"
 	"github.com/yusuke-takatsu/fishing-api-server/infra/repository/user"
 	"github.com/yusuke-takatsu/fishing-api-server/infra/session"
 	"github.com/yusuke-takatsu/fishing-api-server/interface/handler"
+	profRegisterUseCase "github.com/yusuke-takatsu/fishing-api-server/usecase/profile"
 	loginUsecase "github.com/yusuke-takatsu/fishing-api-server/usecase/user"
 	"io"
 	"log"
@@ -42,9 +46,16 @@ func main() {
 	redisClient := database.InitRedisClient()
 	manager := session.NewSessionManager(redisClient, os.Getenv("COOKIE_NAME"), 30*time.Minute)
 
+	s3Client := s3.InitS3Client()
+	s3Repo := s3Repository.NewS3Repository(s3Client)
+
 	userRepo := user.NewRepository(db)
 	login := loginUsecase.NewLoginUseCase(userRepo)
 	userHandler := handler.NewUserHandler(login, manager)
+
+	profileRepo := profile.NewProfileRepository(db)
+	profileRegisterUseCase := profRegisterUseCase.NewRegisterUseCase(profileRepo, s3Repo)
+	profileHandler := handler.NewProfileHandler(profileRegisterUseCase)
 
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
@@ -62,6 +73,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Post("/api/v1/login", userHandler.Login)
+	r.Post("/api/v1/profiles", profileHandler.Register)
 	if err := http.ListenAndServe(":"+os.Getenv("APP_PORT"), r); err != nil {
 		log.Fatalf("ListenAndServe: %v", err)
 	}
