@@ -12,7 +12,7 @@
 #### clone
 
 ```
-git@github.com:yusuke-takatsu/fishing-api-server.git
+git@github.com:y-ttkt/fishing-api-server.git
 ```
 
 #### install
